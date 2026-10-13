@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Air Quality Dashboard</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+
+<!-- Loading overlay — in HTML so it shows before any JS runs -->
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <span id="loadingMsg">Loading dashboard…</span>
+</div>
+
+
+<!-- ===== HEADER ===== -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <span class="brand-icon" aria-hidden="true">🌍</span>
+      <div>
+        <h1 class="brand-title">Global Air Quality Dashboard</h1>
+        <p class="brand-sub">23 000+ cities · snapshot dataset · no real-time data</p>
+      </div>
+    </div>
+    <nav class="header-actions">
+      <a href="#about" class="btn btn-ghost">About Data</a>
+      <button id="btnTheme" class="btn btn-ghost" aria-label="Toggle dark mode" title="Toggle dark / light mode">🌙 Dark</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== FILTER BAR ===== -->
+<section class="filter-bar" aria-label="Filters">
+  <div class="filter-inner">
+
+    <div class="filter-group">
+      <label for="filterCountry" class="filter-label">Country</label>
+      <div class="multiselect-wrapper">
+        <input id="filterCountrySearch" class="input-search" type="text" placeholder="Search countries…" autocomplete="off" />
+        <div id="countryDropdown" class="multiselect-dropdown" role="listbox" aria-label="Country list" aria-multiselectable="true"></div>
+        <div id="countryTags" class="tag-list" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <span class="filter-label">AQI Category</span>
+      <div id="filterCategory" class="checkbox-group" role="group" aria-label="AQI Category filter"></div>
+    </div>
+
+    <div class="filter-group">
+      <label for="filterPollutant" class="filter-label">Pollutant</label>
+      <select id="filterPollutant" class="input-select" aria-label="Select active pollutant">
+        <option value="aqi">AQI Overall</option>
+        <option value="pm25">PM2.5</option>
+        <option value="ozone">Ozone</option>
+        <option value="co">CO</option>
+        <option value="no2">NO2</option>
+      </select>
+    </div>
+
+    <div class="filter-group slider-group">
+      <label class="filter-label">
+        AQI Range: <span id="sliderDisplay">0 – 500</span>
+      </label>
+      <div class="range-track">
+        <input id="sliderMin" class="range-input" type="range" min="0" max="500" value="0" step="1" aria-label="Minimum AQI" />
+        <input id="sliderMax" class="range-input" type="range" min="0" max="500" value="500" step="1" aria-label="Maximum AQI" />
+      </div>
+    </div>
+
+    <button id="btnReset" class="btn btn-outline" type="button">↺ Reset Filters</button>
+  </div>
+</section>
+
+<!-- ===== KPI STRIP ===== -->
+<section class="kpi-strip" aria-label="Key performance indicators">
+  <div class="kpi-card">
+    <span class="kpi-label">Cities</span>
+    <span class="kpi-value" id="kpiCities">—</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Countries</span>
+    <span class="kpi-value" id="kpiCountries">—</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Avg AQI</span>
+    <span class="kpi-value" id="kpiAvg">—</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Median AQI</span>
+    <span class="kpi-value" id="kpiMedian">—</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Good %</span>
+    <span class="kpi-value" id="kpiGood">—</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Unhealthy+%</span>
+    <span class="kpi-value" id="kpiUnhealthy">—</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Dominant Pollutant</span>
+    <span class="kpi-value" id="kpiPollutant">—</span>
+  </div>
+  <div class="kpi-card kpi-card--wide">
+    <span class="kpi-label">Highest AQI City</span>
+    <span class="kpi-value kpi-value--sm" id="kpiWorstCity">—</span>
+  </div>
+</section>
+
+<!-- ===== MAIN CHART GRID ===== -->
+<main class="chart-grid" aria-label="Visualizations">
+
+  <!-- V-01 Doughnut -->
+  <article class="chart-card" aria-label="AQI category distribution">
+    <h2 class="chart-title">Most cities fall in Moderate to Unhealthy range</h2>
+    <p class="chart-sub">Distribution by AQI category</p>
+    <div class="chart-wrap chart-wrap--sm">
+      <canvas id="chartDonut" aria-label="Doughnut chart: AQI category distribution"></canvas>
+    </div>
+    <button class="btn-dl" data-chart="chartDonut" title="Download chart as PNG" aria-label="Download donut chart">⬇ PNG</button>
+  </article>
+
+  <!-- V-02 Top / Bottom countries -->
+  <article class="chart-card chart-card--wide" aria-label="Top and bottom countries by average AQI">
+    <h2 class="chart-title">Top 10 most & least polluted countries (avg AQI, ≥ 5 cities)</h2>
+    <p class="chart-sub">Countries with fewer than 5 cities are excluded to reduce bias</p>
+    <div class="chart-wrap">
+      <canvas id="chartCountries" aria-label="Horizontal bar chart: top and bottom countries by average AQI"></canvas>
+    </div>
+    <button class="btn-dl" data-chart="chartCountries" title="Download chart as PNG" aria-label="Download country bar chart">⬇ PNG</button>
+  </article>
+
+  <!-- V-03 Pollutant comparison -->
+  <article class="chart-card" aria-label="Average AQI per pollutant">
+    <h2 class="chart-title">PM2.5 drives AQI in most cities</h2>
+    <p class="chart-sub">Average AQI contribution per pollutant</p>
+    <div class="chart-wrap chart-wrap--sm">
+      <canvas id="chartPollutant" aria-label="Bar chart: average AQI per pollutant"></canvas>
+    </div>
+    <button class="btn-dl" data-chart="chartPollutant" title="Download chart as PNG" aria-label="Download pollutant chart">⬇ PNG</button>
+  </article>
+
+  <!-- V-04 Histogram -->
+  <article class="chart-card" aria-label="AQI value distribution histogram">
+    <h2 class="chart-title">AQI distribution is right-skewed — most cities are below 100</h2>
+    <p class="chart-sub">Count of cities per AQI bin (width 25)</p>
+    <div class="chart-wrap chart-wrap--sm">
+      <canvas id="chartHistogram" aria-label="Histogram of AQI values"></canvas>
+    </div>
+    <button class="btn-dl" data-chart="chartHistogram" title="Download chart as PNG" aria-label="Download histogram">⬇ PNG</button>
+  </article>
+
+  <!-- V-05 Scatter PM2.5 vs AQI -->
+  <article class="chart-card chart-card--wide" aria-label="PM2.5 versus overall AQI scatter plot">
+    <h2 class="chart-title">PM2.5 is almost perfectly correlated with overall AQI</h2>
+    <p class="chart-sub">Each point is a city (sample of 3 000 for performance)</p>
+    <div class="chart-wrap">
+      <canvas id="chartScatter" aria-label="Scatter plot: PM2.5 AQI vs overall AQI"></canvas>
+    </div>
+    <button class="btn-dl" data-chart="chartScatter" title="Download chart as PNG" aria-label="Download scatter chart">⬇ PNG</button>
+  </article>
+
+  <!-- V-06 Choropleth map -->
+  <article class="chart-card chart-card--full" aria-label="World choropleth map of average AQI">
+    <h2 class="chart-title">Asia and the Middle East show the highest average AQI</h2>
+    <p class="chart-sub">Average AQI per country (countries with &lt; 5 cities shown in grey)</p>
+    <div class="chart-wrap chart-wrap--map">
+      <canvas id="chartMap" aria-label="Choropleth world map showing average AQI per country"></canvas>
+    </div>
+    <button class="btn-dl" data-chart="chartMap" title="Download chart as PNG" aria-label="Download map">⬇ PNG</button>
+  </article>
+
+  <!-- V-07 Correlation heatmap -->
+  <article class="chart-card" aria-label="Pollutant correlation heatmap">
+    <h2 class="chart-title">PM2.5 and overall AQI are near-perfectly correlated</h2>
+    <p class="chart-sub">Pearson correlation between AQI metrics</p>
+    <div class="chart-wrap chart-wrap--sm">
+      <canvas id="chartHeatmap" aria-label="Heatmap: correlation matrix between pollutants"></canvas>
+    </div>
+    <button class="btn-dl" data-chart="chartHeatmap" title="Download chart as PNG" aria-label="Download heatmap">⬇ PNG</button>
+  </article>
+
+  <!-- V-08 Country comparison radar -->
+  <article class="chart-card chart-card--wide" aria-label="Country pollutant profile comparison">
+    <h2 class="chart-title">Compare pollutant profiles of up to 3 countries</h2>
+    <p class="chart-sub">Select up to 3 countries from the search below</p>
+    <div class="compare-controls">
+      <input id="compareSearch" class="input-search" type="text" placeholder="Type a country to add…" autocomplete="off" aria-label="Search country for comparison" />
+      <div id="compareDropdown" class="multiselect-dropdown"></div>
+      <div id="compareTags" class="tag-list"></div>
+    </div>
+    <div class="chart-wrap chart-wrap--sm">
+      <canvas id="chartRadar" aria-label="Radar chart: pollutant profile comparison"></canvas>
+    </div>
+    <button class="btn-dl" data-chart="chartRadar" title="Download chart as PNG" aria-label="Download radar chart">⬇ PNG</button>
+  </article>
+
+</main>
+
+<!-- ===== CITY TABLE ===== -->
+<section class="table-section" aria-label="City data table">
+  <div class="table-header">
+    <h2 class="section-title">City-level Data</h2>
+    <div class="table-controls">
+      <input id="tableSearch" class="input-search" type="text" placeholder="Search city or country…" aria-label="Search city or country" />
+      <button id="btnExport" class="btn btn-outline" type="button">⬇ Export CSV</button>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table id="cityTable" role="grid" aria-label="City air quality data">
+      <thead>
+        <tr>
+          <th scope="col" data-col="country" class="sortable" tabindex="0" role="columnheader" aria-sort="none">Country <span class="sort-icon" aria-hidden="true"></span></th>
+          <th scope="col" data-col="city"    class="sortable" tabindex="0" role="columnheader" aria-sort="none">City <span class="sort-icon" aria-hidden="true"></span></th>
+          <th scope="col" data-col="aqi"     class="sortable" tabindex="0" role="columnheader" aria-sort="none">AQI <span class="sort-icon" aria-hidden="true"></span></th>
+          <th scope="col" data-col="aqiCat"  class="sortable" tabindex="0" role="columnheader" aria-sort="none">Category <span class="sort-icon" aria-hidden="true"></span></th>
+          <th scope="col" data-col="pm25"    class="sortable" tabindex="0" role="columnheader" aria-sort="none">PM2.5 <span class="sort-icon" aria-hidden="true"></span></th>
+          <th scope="col" data-col="ozone"   class="sortable" tabindex="0" role="columnheader" aria-sort="none">Ozone <span class="sort-icon" aria-hidden="true"></span></th>
+          <th scope="col" data-col="co"      class="sortable" tabindex="0" role="columnheader" aria-sort="none">CO <span class="sort-icon" aria-hidden="true"></span></th>
+          <th scope="col" data-col="no2"     class="sortable" tabindex="0" role="columnheader" aria-sort="none">NO2 <span class="sort-icon" aria-hidden="true"></span></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination" aria-label="Table pagination"></div>
+</section>
+
+<!-- ===== ABOUT ===== -->
+<section id="about" class="about-section" aria-label="About the data">
+  <div class="about-inner">
+    <h2>About the Data</h2>
+    <dl class="about-grid">
+      <dt>Source</dt>
+      <dd>Global Air Pollution Dataset — <a href="https://www.kaggle.com/datasets/hasibalmuzdadid/global-air-pollution-dataset" target="_blank" rel="noopener">Kaggle</a>. Snapshot dataset; no temporal dimension.</dd>
+      <dt>AQI Definition</dt>
+      <dd>Air Quality Index (AQI) converts pollutant concentrations into a 0–500 scale. The overall AQI equals the highest sub-index among CO, Ozone, NO2, and PM2.5.</dd>
+      <dt>Categories</dt>
+      <dd>
+        <span class="aqi-badge cat-Good">Good (0–50)</span>
+        <span class="aqi-badge cat-Moderate">Moderate (51–100)</span>
+        <span class="aqi-badge cat-USG">Unhealthy for Sensitive Groups (101–150)</span>
+        <span class="aqi-badge cat-Unhealthy">Unhealthy (151–200)</span>
+        <span class="aqi-badge cat-VeryUnhealthy">Very Unhealthy (201–300)</span>
+        <span class="aqi-badge cat-Hazardous">Hazardous (301–500)</span>
+      </dd>
+      <dt>Limitations</dt>
+      <dd>No timestamps — trends cannot be inferred. No coordinates — city-level map pins are not available. 427 rows have no country assigned (labelled "Unknown" and excluded from country-level charts). Rankings use a minimum threshold of 5 cities per country.</dd>
+      <dt>Data cleaning</dt>
+      <dd>1 row with no city was removed. Country names were normalised to ISO-3 codes for the choropleth map. AQI categories were standardised to a fixed order.</dd>
+    </dl>
+  </div>
+</section>
+
+<footer class="site-footer">
+  Global Air Quality Dashboard · Josua · Capstone 2026 · Data: Kaggle Global Air Pollution Dataset
+</footer>
+
+<!-- Libraries (pinned versions) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-geo@4.3.3/build/index.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js"></script>
+
+<!-- App (ES modules) -->
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

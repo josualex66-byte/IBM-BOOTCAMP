@@ -1,0 +1,162 @@
+/* =========================================================
+   base.css — design tokens, reset, layout skeleton
+   ========================================================= */
+
+/* ----- tokens (light) ----- */
+:root {
+  --bg:          #ffffff;
+  --surface:     #f7f8fa;
+  --surface2:    #eef0f3;
+  --border:      #e5e7eb;
+  --text:        #1f2328;
+  --text-muted:  #57606a;
+  --accent:      #3b82d4;
+  --accent-hover:#2563ae;
+  --radius:      8px;
+  --shadow:      0 1px 4px rgba(0,0,0,.08);
+  --transition:  200ms ease;
+  --font: -apple-system, "Segoe UI", system-ui, sans-serif;
+
+  /* AQI palette */
+  --aqi-good:    #4ade80;
+  --aqi-mod:     #facc15;
+  --aqi-usg:     #fb923c;
+  --aqi-unh:     #f87171;
+  --aqi-vu:      #a855f7;
+  --aqi-haz:     #9f1239;
+}
+
+/* ----- tokens (dark) ----- */
+[data-theme="dark"] {
+  --bg:         #0d1117;
+  --surface:    #161b22;
+  --surface2:   #21262d;
+  --border:     #30363d;
+  --text:       #e6edf3;
+  --text-muted: #8b949e;
+  --shadow:     0 1px 6px rgba(0,0,0,.4);
+}
+
+/* ----- reset ----- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.6;
+  background: var(--bg);
+  color: var(--text);
+  transition: background var(--transition), color var(--transition);
+}
+
+a { color: var(--accent); }
+a:hover { color: var(--accent-hover); }
+
+h1 { font-size: 1.25rem; font-weight: 700; }
+h2 { font-size: 1rem;    font-weight: 600; }
+
+/* ----- site header ----- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.header-inner {
+  max-width: 1440px;
+  margin: auto;
+  padding: .75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.header-brand { display: flex; align-items: center; gap: .75rem; }
+.brand-icon    { font-size: 1.8rem; line-height: 1; }
+.brand-title   { font-size: 1.1rem; }
+.brand-sub     { font-size: .75rem; color: var(--text-muted); }
+.header-actions{ display: flex; align-items: center; gap: .5rem; }
+
+/* ----- filter bar ----- */
+.filter-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: .75rem 0;
+}
+.filter-inner {
+  max-width: 1440px;
+  margin: auto;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: flex-start;
+}
+
+/* ----- KPI strip ----- */
+.kpi-strip {
+  max-width: 1440px;
+  margin: 1rem auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: .75rem;
+}
+
+/* ----- chart grid ----- */
+.chart-grid {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 1.5rem 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .chart-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .chart-grid { grid-template-columns: 1fr; }
+  .filter-inner { gap: .5rem; }
+}
+
+.chart-card--wide { grid-column: span 2; }
+.chart-card--full { grid-column: 1 / -1; }
+
+@media (max-width: 640px) {
+  .chart-card--wide,
+  .chart-card--full { grid-column: 1; }
+}
+
+/* ----- table ----- */
+.table-section {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 1.5rem 2rem;
+}
+
+/* ----- about ----- */
+.about-section {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 2rem 0;
+}
+.about-inner {
+  max-width: 1440px;
+  margin: auto;
+  padding: 0 1.5rem;
+}
+.about-inner h2 { font-size: 1.1rem; margin-bottom: 1rem; }
+
+/* ----- site footer ----- */
+.site-footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: .75rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}
